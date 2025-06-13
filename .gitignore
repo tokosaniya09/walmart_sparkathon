@@ -1,5 +1,4 @@
-# Ignore virtual environment
-_pycache_/
+__pycache__/
 .env
 *.pyc
 node_modules/
