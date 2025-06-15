@@ -1,5 +1,6 @@
 import requests
-from app.db import get_session
+# from app.db import get_session
+from app.db import SessionLocal
 from app.services.embedding_service import EmbeddingService
 from app.services.qdrant_service import QdrantService
 from app.models.product import Product
@@ -11,7 +12,7 @@ API_KEY = "70F447D600604071BF55A39C454388D9"
 embedder = EmbeddingService()
 qdrant = QdrantService()
 
-def fetch_products(keyword, limit=3):
+def fetch_products(keyword, limit=10):
     params = {
         "api_key": API_KEY,
         "type": "search",
@@ -52,7 +53,7 @@ def load_products_to_db(db: Session, keyword):
 
 
 def main():
-    from app.db import SessionLocal
+    
     with SessionLocal() as db:
         load_products_to_db(db, "dresses")
         
