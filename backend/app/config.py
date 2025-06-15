@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     QDRANT_URL: str
     POSTGRES_URL: str
     QDRANT_API_KEY: str
+    BLUECART_API_KEY: str
 
     class Config:
         env_file = ".env"
