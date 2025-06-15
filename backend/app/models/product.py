@@ -1,17 +1,18 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, text
-from sqlalchemy.sql import func
-from app.database import Base
+from sqlalchemy import Column, String, Float, Boolean, Integer
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
 
 class Product(Base):
-    __tablename__ = "product"
+    __tablename__ = 'products'
 
-    id = Column(Integer, primary_key=True, index=True)
-    product_id = Column(String, unique=True, index=True)
-    name = Column(String)
-    description = Column(String)
-    category = Column(String)
+    item_id = Column(String, primary_key=True)
+    product_id = Column(String)
+    title = Column(String)
     brand = Column(String)
-    price = Column(Float)
-    image_url = Column(String)
-    source_url = Column(String)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    link = Column(String)
+    main_image = Column(String)
+    rating = Column(Float)
+    ratings_total = Column(Integer)
+    best_seller = Column(Boolean)
+    sponsored = Column(Boolean)
