@@ -1,21 +1,139 @@
 'use client';
 
 import { useState } from 'react';
-import { MagnifyingGlassIcon, CameraIcon } from '@heroicons/react/24/outline';
+import { CameraIcon } from '@heroicons/react/24/outline';
+import ProductCard from '@/components/ProductCard';
 
 type ProductItem = {
   name: string;
   description: string;
   image_url: string;
   product_url: string;
+  price?: string;
+  rating?: number;
 };
+
+// Expanded sample products in various categories
+const sampleProducts: ProductItem[] = [
+  // Dresses & Apparel
+  {
+    name: 'Elegant Summer Dress',
+    description: 'Floral print, lightweight, perfect for outings.',
+    image_url: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=80',
+    product_url: '#',
+    price: '$49.99',
+    rating: 4.6,
+  },
+  {
+    name: 'Classic Denim Jacket',
+    description: 'Timeless denim, unisex fit, all seasons.',
+    image_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&q=80',
+    product_url: '#',
+    price: '$59.99',
+    rating: 4.8,
+  },
+  // Home Decor
+  {
+    name: 'Nordic Table Lamp',
+    description: 'Minimalist bedside lamp for cozy evenings.',
+    image_url: 'https://plus.unsplash.com/premium_photo-1706072613979-e2bddb367f41?q=80&w=928&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    product_url: '#',
+    price: '$34.99',
+    rating: 4.5,
+  },
+  {
+    name: 'Modern Wall Clock',
+    description: 'Simple, silent wall clock for living room decor.',
+    image_url: 'https://images.unsplash.com/photo-1642071272153-d64e1c557434?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    product_url: '#',
+    price: '$24.99',
+    rating: 4.1,
+  },
+  // Furniture
+  {
+    name: 'Wooden Coffee Table',
+    description: 'Handcrafted oak coffee table, modern style.',
+    image_url: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=400&q=80',
+    product_url: '#',
+    price: '$149.99',
+    rating: 4.9,
+  },
+  {
+    name: 'Ergonomic Desk Chair',
+    description: 'Comfortable mesh chair for office and study.',
+    image_url: 'https://images.unsplash.com/photo-1688578735427-994ecdea3ea4?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    product_url: '#',
+    price: '$99.99',
+    rating: 4.7,
+  },
+  // Kitchen Essentials
+  {
+    name: 'Ceramic Dinner Plate Set',
+    description: 'Set of 6 dinner plates, dishwasher safe.',
+    image_url: 'https://images.unsplash.com/photo-1631008788516-e6d34ad2bbc0?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    product_url: '#',
+    price: '$29.99',
+    rating: 4.4,
+  },
+  {
+    name: 'Professional Chef Knife',
+    description: 'Stainless steel kitchen knife, ultra sharp.',
+    image_url: 'https://images.unsplash.com/photo-1570643509348-4fe54c998566?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    product_url: '#',
+    price: '$19.99',
+    rating: 4.8,
+  },
+  // Instruments
+  {
+    name: 'Acoustic Guitar',
+    description: 'Beginner-friendly 6-string acoustic guitar.',
+    image_url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80',
+    product_url: '#',
+    price: '$119.99',
+    rating: 4.6,
+  },
+  {
+    name: 'Digital Piano Keyboard',
+    description: '61-key portable electronic piano for learners.',
+    image_url: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400&q=80',
+    product_url: '#',
+    price: '$179.99',
+    rating: 4.9,
+  },
+  // Add more categories as you like
+  {
+    name: 'Scented Candle Set',
+    description: '3-pack of aromatic candles for home ambiance.',
+    image_url: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400&q=80',
+    product_url: '#',
+    price: '$14.99',
+    rating: 4.3,
+  },
+  {
+    name: 'Stainless Steel Water Bottle',
+    description: 'Keeps beverages hot/cold for 24 hours.',
+    image_url: 'https://images.unsplash.com/photo-1465101178521-c1a9136a3e16?w=400&q=80',
+    product_url: '#',
+    price: '$12.99',
+    rating: 4.7,
+  },
+];
 
 export default function HomePage() {
   const [query, setQuery] = useState<string>('');
   const [results, setResults] = useState<ProductItem[]>([]);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
 
-  const mockSuggestions: string[] = ['Shampoo', 'Wireless Headphones', 'Sneakers', 'Organic Snacks'];
+  const mockSuggestions: string[] = [
+    'Shampoo',
+    'Wireless Headphones',
+    'Sneakers',
+    'Organic Snacks',
+    'Table Lamp',
+    'Coffee Table',
+    'Acoustic Guitar',
+    'Chef Knife',
+  ];
 
   const handleSearch = async () => {
     if (!query) return;
@@ -27,9 +145,11 @@ export default function HomePage() {
     } catch (err) {
       setResults([]);
       setShowSuggestions(false);
-      // Optionally handle errors here
     }
   };
+
+  // Use sampleProducts as default cards if no search results
+  const displayProducts = results.length > 0 ? results : sampleProducts;
 
   return (
     <>
@@ -88,21 +208,10 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {results.map((item, i) => (
-            <div key={i} className="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition duration-200">
-              <img src={item.image_url} alt={item.name} className="w-full h-48 object-contain mb-4" />
-              <h2 className="text-lg font-semibold text-gray-800 mb-2">{item.name}</h2>
-              <p className="text-gray-600 text-sm mb-4 line-clamp-3">{item.description}</p>
-              <a
-                href={item.product_url}
-                target="_blank"
-                className="text-blue-600 font-medium hover:underline"
-                rel="noopener noreferrer"
-              >
-                View Product →
-              </a>
-            </div>
+        {/* Card grid */}
+        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {displayProducts.map((item, i) => (
+            <ProductCard key={i} {...item} />
           ))}
         </div>
       </main>
