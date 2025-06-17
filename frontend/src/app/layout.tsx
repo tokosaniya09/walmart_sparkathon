@@ -17,11 +17,28 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
+   return (
     <html lang="en">
-      <body className={`${openSans.variable}`}>
+      <body>
+        {/* Header (will show on every page) */}
+        <header className="w-full bg-blue-800 py-10">
+          <h1 className="text-center text-4xl font-bold text-yellow-400 tracking-widest">
+            Walmart
+          </h1>
+        </header>
+
+        {/* Page Content */}
         {children}
+
+        {/* Footer (will show on every page) */}
+        <footer className="w-full bg-blue-800 py-4 mt-12">
+          <div className="text-center text-yellow-400 font-medium">
+            © 2025 Walmart Search Demo. All rights reserved.
+          </div>
+        </footer>
       </body>
     </html>
   );
 }
+
+// {new Date().getFullYear()}
