@@ -12,9 +12,9 @@ import uuid
 
 load_dotenv()
 
-API_KEY = os.getenv("BLUECART_API_KEY") or "70F447D600604071BF55A39C454388D9"
-QDRANT_URL = os.getenv("QDRANT_URL") or "https://2d82c9c0-8526-4968-b9db-5763bf1ede84.europe-west3-0.gcp.cloud.qdrant.io"
-QDRANT_API_KEY = os.getenv("QDRANT_API_KEY") or "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3MiOiJtIn0.Y3DsaOaEUI1AxFnKnVQXp9xNKFClKMhqIlY8BYaRZBw"
+API_KEY = os.getenv("BLUECART_API_KEY") 
+QDRANT_URL = os.getenv("QDRANT_URL") 
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY") 
 COLLECTION_NAME = "products"
 
 client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
