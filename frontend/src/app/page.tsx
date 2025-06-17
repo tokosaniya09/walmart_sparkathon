@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { CameraIcon } from '@heroicons/react/24/outline';
 import ProductCard from '@/components/ProductCard';
 
@@ -13,6 +14,18 @@ type ProductItem = {
   rating?: number;
 };
 
+const categories = [
+  "Home Decor",
+  "Kitchen Essentials",
+  "Furniture",
+  "Apparel",
+  "Bags & Shoes",
+  "Electronics",
+  "Jewellery",
+  "Beauty & Health",
+];
+
+// ...sampleProducts stays as is...
 // Expanded sample products in various categories
 const sampleProducts: ProductItem[] = [
   // Dresses & Apparel
@@ -121,6 +134,7 @@ const sampleProducts: ProductItem[] = [
 
 export default function HomePage() {
   const [query, setQuery] = useState<string>('');
+  const router = useRouter();
   const [results, setResults] = useState<ProductItem[]>([]);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
 
@@ -135,37 +149,56 @@ export default function HomePage() {
     'Chef Knife',
   ];
 
-  const handleSearch = async () => {
-    if (!query) return;
-    try {
-      const res = await fetch(`http://localhost:8000/search?query=${encodeURIComponent(query)}`);
-      const data = await res.json();
-      setResults(data.results || []);
-      setShowSuggestions(true);
-    } catch (err) {
-      setResults([]);
-      setShowSuggestions(false);
-    }
+  // const handleSearch = async () => {
+  //   if (!query) return;
+  //   try {
+  //     const res = await fetch(`http://localhost:8000/search?query=${encodeURIComponent(query)}`);
+  //     const data = await res.json();
+  //     setResults(data.results || []);
+  //     setShowSuggestions(true);
+  //   } catch (err) {
+  //     setResults([]);
+  //     setShowSuggestions(false);
+  //   }
+  // };
+
+  const handleSearch = () => {
+  if (!query) return;
+  router.push(`/search?q=${encodeURIComponent(query)}`);
+};
+
+  const handleCategoryClick = (cat: string) => {
+    router.push(`/category/${encodeURIComponent(cat)}`);
   };
 
-  // Use sampleProducts as default cards if no search results
   const displayProducts = results.length > 0 ? results : sampleProducts;
 
   return (
     <>
-      {/* Header */}
-      <header className="w-full bg-blue-800 py-10">
-        <h1 className="text-center text-4xl font-bold text-yellow-400 tracking-widest ">
-          Walmart
-        </h1>
-      </header>
-
-      <main className="min-h-screen bg-gray-50 py-12 px-6 md:px-12">
+      {/* Categories Bar */}
+      <nav className="w-full bg-gray-50 shadow z-10 sticky top-0 border-gray-90">
+        <div className="max-w-7xl mx-auto px-4">
+          <ul className="flex flex-nowrap overflow-x-auto no-scrollbar gap-6 py-3 justify-center">
+            {categories.map((cat) => (
+              <li key={cat} className="flex-shrink-0">
+                <button
+                  onClick={() => handleCategoryClick(cat)}
+                  className="whitespace-nowrap px-4 py-2 rounded-full hover:bg-gray-100 font-medium text-gray-700 transition text-center"
+                >
+                  {cat}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </nav>
+      <main className="min-h-screen bg-gray-50 py-10 px-6 md:px-12">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-gray-900 mb-5 mt-1">Search for your favorite products by text or image</p>
-
+          <p className="text-gray-900 mb-5 text-xl">
+            Search for your favorite products by text or image
+          </p>
           <div className="relative flex justify-center mb-10">
-            <div className="flex relative w-full sm:w-2/3 border border-gray-300 rounded-full shadow-sm">
+            <div className="flex relative w-full sm:w-3/4 md:w-3/4 lg:w-3/4 border border-gray-300 rounded-full shadow-sm">
               <input
                 type="text"
                 placeholder="Search by text..."
@@ -174,17 +207,16 @@ export default function HomePage() {
                   setQuery(e.target.value);
                   setShowSuggestions(true);
                 }}
-                className="w-full py-2 pl-10 h-10 border-none rounded-full shadow-sm focus:outline-none text-gray-800 text-base"
+                className="w-full py-2 pl-10 h-12 border-none rounded-full shadow-sm focus:outline-none text-gray-800 text-base"
               />
               <CameraIcon className="h-10 w-10 my-auto mx-2 text-gray-800" />
               <button
                 type="button"
                 onClick={handleSearch}
-                className="relative right-2 top-1 bg-blue-800 hover:bg-blue-700 hover:cursor-pointer text-white rounded-full text-sm h-8 w-24 ml-3"
+                className="relative right-2 top-2 bg-blue-800 hover:bg-blue-700 hover:cursor-pointer text-white rounded-full text-sm h-8 w-24 ml-3"
               >
                 Search
               </button>
-
               {showSuggestions && query && (
                 <div className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow top-16 max-h-60 overflow-y-auto py-2">
                   {mockSuggestions
@@ -196,7 +228,7 @@ export default function HomePage() {
                         onClick={() => {
                           setQuery(suggestion);
                           setShowSuggestions(false);
-                          handleSearch();
+                          router.push(`/search?q=${encodeURIComponent(suggestion)}`);
                         }}
                       >
                         {suggestion}
@@ -207,7 +239,6 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-
         {/* Card grid */}
         <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {displayProducts.map((item, i) => (
@@ -215,13 +246,6 @@ export default function HomePage() {
           ))}
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="w-full bg-blue-800 py-4 mt-12">
-        <div className="text-center text-yellow-400 font-medium">
-          © {new Date().getFullYear()} Walmart Search Demo. All rights reserved.
-        </div>
-      </footer>
     </>
   );
 }
