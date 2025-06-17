@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-API_KEY = os.getenv("BLUECART_API_KEY")  # or hardcode for now
+API_KEY = os.getenv("BLUECART_API_KEY")  
 
 def fetch_bluecart_search(search_term: str):
     url = "https://api.bluecartapi.com/request"
@@ -38,7 +38,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-API_KEY = os.getenv("BLUECART_API_KEY") or "70F447D600604071BF55A39C454388D9"
+API_KEY = os.getenv("BLUECART_API_KEY")
 
 def fetch_products_from_bluecart(search_term: str):
     url = "https://api.bluecartapi.com/request"
