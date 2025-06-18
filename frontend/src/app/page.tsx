@@ -4,6 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CameraIcon } from '@heroicons/react/24/outline';
 import ProductCard from '@/components/ProductCard';
+import CameraModal from '@/components/CameraModal';
+import ImageSearchButton from '@/components/ImageSearchButton';
+
 
 type ProductItem = {
   name: string;
@@ -137,6 +140,28 @@ export default function HomePage() {
   const router = useRouter();
   const [results, setResults] = useState<ProductItem[]>([]);
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
+  const [imageFile, setImageFile] = useState<File | string | null>(null);
+
+  const handleImageSelect = (file: File | string) => {
+    setImageFile(file);
+  };
+
+  const handleImageSearch = async () => {
+    if (!imageFile) return;
+
+    let imageUrl: string;
+    if (typeof imageFile === "string") {
+  // base64 string from webcam
+    imageUrl = imageFile;
+      } else if (imageFile instanceof File) {
+  // file object from file input
+    imageUrl = URL.createObjectURL(imageFile);
+      } else {
+    return; // handle error if needed
+    }
+  router.push(`/search?image=${encodeURIComponent(imageUrl)}`);
+  }
 
   const mockSuggestions: string[] = [
     'Shampoo',
@@ -165,7 +190,7 @@ export default function HomePage() {
   const handleSearch = () => {
   if (!query) return;
   router.push(`/search?q=${encodeURIComponent(query)}`);
-};
+  };
 
   const handleCategoryClick = (cat: string) => {
     router.push(`/category/${encodeURIComponent(cat)}`);
@@ -209,7 +234,8 @@ export default function HomePage() {
                 }}
                 className="w-full py-2 pl-10 h-12 border-none rounded-full shadow-sm focus:outline-none text-gray-800 text-base"
               />
-              <CameraIcon className="h-10 w-10 my-auto mx-2 text-gray-800" />
+              <CameraIcon className="h-10 w-10 my-auto mx-2 text-gray-800 cursor-pointer" 
+              onClick={() => setShowCameraModal(true)} />
               <button
                 type="button"
                 onClick={handleSearch}
@@ -238,7 +264,30 @@ export default function HomePage() {
               )}
             </div>
           </div>
+            {/* Show image preview and search button if image attached */}
+        {imageFile && (
+          <div className="text-center mb-6">
+            <img
+              src={
+                 typeof imageFile === "string"
+            ? imageFile // base64 string from webcam
+            : URL.createObjectURL(imageFile)
+          }
+              alt="Selected"
+              className="mx-auto max-h-40 rounded-lg my-4"
+            />
+            <ImageSearchButton onClick={handleImageSearch} onCancel={() => setImageFile(null)} />
+          </div>
+        )}
+
+        {/* Camera Modal */}
+        <CameraModal
+          open={showCameraModal}
+          onClose={() => setShowCameraModal(false)}
+          onImageSelect={handleImageSelect}
+        />
         </div>
+
         {/* Card grid */}
         <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {displayProducts.map((item, i) => (
