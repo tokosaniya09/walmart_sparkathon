@@ -1,4 +1,3 @@
-# app/qdrant_client.py
 import os
 from qdrant_client import QdrantClient
 from dotenv import load_dotenv
