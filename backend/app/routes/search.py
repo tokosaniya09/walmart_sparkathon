@@ -1,4 +1,3 @@
-# app/routes/search.py
 from fastapi import APIRouter, UploadFile, File, Form, Depends
 from sqlalchemy.orm import Session
 from app.db import get_session as get_db
