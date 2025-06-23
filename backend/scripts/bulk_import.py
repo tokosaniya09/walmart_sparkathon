@@ -9,6 +9,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct
 from sentence_transformers import SentenceTransformer
 import uuid
+from app.utils.product_classify import classify_product_fields
 
 load_dotenv()
 
@@ -52,15 +53,27 @@ def process_product(item, category):
     price = float(o.get("price", 0))
     image_url = p.get("main_image") or p.get("link", "")
 
+    # 🔍 Auto-classify
+    try:
+        enriched = classify_product_fields(title, description)
+    except Exception as e:
+        print(f"❌ Classification failed for '{title}': {e}")
+        enriched = {}
+
+
     product = Product(
         title=title,
         description=description,
         price=price,
         image_url=image_url,
-        category=category.title()
+        category=category.title(),
+        sub_category=enriched.get("sub_category"),
+        item_type=enriched.get("item_type"),
+        color=enriched.get("color"),
+        material=enriched.get("material")
     )
 
-    embed_input = f"{title}. {description}"
+    embed_input = f"{title}. {description}. "
     vector = model.encode(embed_input).tolist()
 
     return product, vector

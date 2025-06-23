@@ -30,7 +30,7 @@ export default function SearchPage() {
       if (image) {
         try {
           const blob = await fetch(image).then((r) => r.blob());
-          formData.append('image', blob, image);
+          formData.append('image', blob, 'image.jpg');
         } catch (err) {
           console.error('Failed to fetch image blob:', err);
           return;

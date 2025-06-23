@@ -1,5 +1,8 @@
-from fastapi import APIRouter, UploadFile, File, Form, Depends
+# app/routes/search.py
+from fastapi import APIRouter, UploadFile, File, Form,Query, Depends
 from sqlalchemy.orm import Session
+from sqlmodel import select
+from sqlalchemy import text
 from app.db import get_session as get_db
 from app.models import Product
 from app.utils.embed import generate_text_embedding, generate_image_embedding
@@ -48,3 +51,38 @@ async def search_products(
 
     
 
+@router.get("/api/search-suggestions")
+def search_suggestions(
+    q: str = Query(..., min_length=1),
+    db: Session = Depends(get_db)
+):
+    try:
+        result = db.execute(
+            text("""
+                SELECT DISTINCT suggestion FROM (
+                    SELECT category AS suggestion FROM product
+                    WHERE LOWER(category) LIKE :q AND category IS NOT NULL
+                    UNION
+                    SELECT sub_category AS suggestion FROM product
+                    WHERE LOWER(sub_category) LIKE :q AND sub_category IS NOT NULL
+                ) AS suggestions
+                LIMIT 10;
+            """),
+            {"q": f"{q.lower()}%"}
+        )
+        suggestions = [row[0] for row in result]
+        return {"suggestions": suggestions}
+    except Exception as e:
+        print("❌ Error in search_suggestions:", str(e))
+        return {"suggestions": []}
+
+    # # Case-insensitive, startswith query
+    # result = db.execute(
+    #     text("SELECT title FROM products WHERE LOWER(title) LIKE :q LIMIT 10"),
+    #     {"q": f"{q.lower()}%"}
+
+    #     # text("SELECT name FROM products WHERE LOWER(name) LIKE :q LIMIT 10"),
+    #     # {"q": f"{q.lower()}%"}
+    # )
+    # suggestions = [row[0] for row in result]
+    # return {"suggestions": suggestions}

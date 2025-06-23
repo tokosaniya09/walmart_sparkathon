@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CameraIcon } from '@heroicons/react/24/outline';
@@ -142,6 +143,24 @@ export default function HomePage() {
   const [showSuggestions, setShowSuggestions] = useState<boolean>(false);
   const [showCameraModal, setShowCameraModal] = useState(false);
   const [imageFile, setImageFile] = useState<File | string | null>(null);
+const [suggestions, setSuggestions] = useState<string[]>([]);
+
+useEffect(() => {
+  if (!query) {
+    setSuggestions([]);
+    return;
+  }
+  const timeoutId = setTimeout(() => {
+    fetch(`http://localhost:8000/api/search-suggestions?q=${encodeURIComponent(query)}`)
+      .then(res => res.json())
+      .then(data => setSuggestions(data.suggestions || []))
+      .catch(() => setSuggestions([]));
+    setShowSuggestions(true);
+  }, 300); // debounce
+
+  return () => clearTimeout(timeoutId);
+}, [query]);
+
 
   const handleImageSelect = (file: File | string) => {
     setImageFile(file);
@@ -243,8 +262,20 @@ export default function HomePage() {
               >
                 Search
               </button>
-              {showSuggestions && query && (
-                <div className="absolute z-10 mt-2 w-full bg-white border border-gray-200 rounded-xl shadow top-16 max-h-60 overflow-y-auto py-2">
+              {showSuggestions && query && suggestions.length > 0 && (
+  <div className="absolute z-10 left-0 top-full w-full bg-white border-x border-b border-gray-200 rounded-b-xl shadow max-h-60 overflow-y-auto py-2">
+    {suggestions.map((suggestion, index) => (
+      <div
+        key={index}
+        className="pl-10 pb-1 hover:bg-gray-100 cursor-pointer text-left text-sm"
+        onClick={() => {
+          setQuery(suggestion);
+          setShowSuggestions(false);
+          router.push(`/search?q=${encodeURIComponent(suggestion)}`);
+        }}
+      >
+              {/* {showSuggestions && query && (
+                <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-xl shadow top-12 max-h-60 overflow-y-auto py-2">
                   {mockSuggestions
                     .filter((s) => s.toLowerCase().includes(query.toLowerCase()))
                     .map((suggestion, index) => (
@@ -256,7 +287,7 @@ export default function HomePage() {
                           setShowSuggestions(false);
                           router.push(`/search?q=${encodeURIComponent(suggestion)}`);
                         }}
-                      >
+                      > */}
                         {suggestion}
                       </div>
                     ))}
