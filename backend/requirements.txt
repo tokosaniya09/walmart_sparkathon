@@ -1,0 +1,10 @@
+fastapi==0.115.13
+Pillow==11.2.1
+python-dotenv==1.1.0
+Requests==2.32.4
+sentence_transformers==4.1.0
+SQLAlchemy==2.0.41
+sqlmodel==0.0.24
+torch==2.7.1
+torchvision==0.22.1
+tqdm==4.67.1

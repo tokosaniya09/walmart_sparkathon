@@ -8,3 +8,7 @@ class Product(SQLModel, table=True):
     price: float
     image_url: str
     category: str
+    sub_category: Optional[str] = None  # <-- new
+    item_type: Optional[str] = None     # <-- new
+    color: Optional[str] = None         # <-- new
+    material: Optional[str] = None  
