@@ -7,7 +7,9 @@ import { CameraIcon } from '@heroicons/react/24/outline';
 import ProductCard from '@/components/ProductCard';
 import CameraModal from '@/components/CameraModal';
 import ImageSearchButton from '@/components/ImageSearchButton';
+
 import AnimatedPlaceholder from '@/components/AnimatedPlaceholder';
+
 
 
 
@@ -147,6 +149,7 @@ export default function HomePage() {
   const [imageFile, setImageFile] = useState<File | string | null>(null);
 const [suggestions, setSuggestions] = useState<string[]>([]);
 
+
 const [inputFocused, setInputFocused] = useState(false);
 const [dynamicPlaceholder, setDynamicPlaceholder] = useState('');
 const [resetPlaceholder, setResetPlaceholder] = useState(false);
@@ -224,12 +227,14 @@ useEffect(() => {
 
   const displayProducts = results.length > 0 ? results : sampleProducts;
 
+
   useEffect(() => {
   if (resetPlaceholder) {
     const timeout = setTimeout(() => setResetPlaceholder(false), 100); // just one tick
     return () => clearTimeout(timeout);
   }
 }, [resetPlaceholder]);
+
 
   return (
     <>
@@ -258,6 +263,7 @@ useEffect(() => {
           <div className="relative flex justify-center mb-10">
             <div className="flex relative w-full sm:w-3/4 md:w-3/4 lg:w-3/4 border border-gray-300 rounded-full shadow-sm">
               <input
+
               
   type="text"
 placeholder={query || (inputFocused ? '' : `${dynamicPlaceholder} |`)}
