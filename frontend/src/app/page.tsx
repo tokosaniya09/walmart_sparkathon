@@ -7,6 +7,8 @@ import { CameraIcon } from '@heroicons/react/24/outline';
 import ProductCard from '@/components/ProductCard';
 import CameraModal from '@/components/CameraModal';
 import ImageSearchButton from '@/components/ImageSearchButton';
+import AnimatedPlaceholder from '@/components/AnimatedPlaceholder';
+
 
 
 type ProductItem = {
@@ -145,6 +147,11 @@ export default function HomePage() {
   const [imageFile, setImageFile] = useState<File | string | null>(null);
 const [suggestions, setSuggestions] = useState<string[]>([]);
 
+const [inputFocused, setInputFocused] = useState(false);
+const [dynamicPlaceholder, setDynamicPlaceholder] = useState('');
+const [resetPlaceholder, setResetPlaceholder] = useState(false);
+
+
 useEffect(() => {
   if (!query) {
     setSuggestions([]);
@@ -217,6 +224,13 @@ useEffect(() => {
 
   const displayProducts = results.length > 0 ? results : sampleProducts;
 
+  useEffect(() => {
+  if (resetPlaceholder) {
+    const timeout = setTimeout(() => setResetPlaceholder(false), 100); // just one tick
+    return () => clearTimeout(timeout);
+  }
+}, [resetPlaceholder]);
+
   return (
     <>
       {/* Categories Bar */}
@@ -244,21 +258,45 @@ useEffect(() => {
           <div className="relative flex justify-center mb-10">
             <div className="flex relative w-full sm:w-3/4 md:w-3/4 lg:w-3/4 border border-gray-300 rounded-full shadow-sm">
               <input
-                type="text"
-                placeholder="Search by text..."
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setShowSuggestions(true);
-                }}
-                className="w-full py-2 pl-10 h-12 border-none rounded-full shadow-sm focus:outline-none text-gray-800 text-base"
-              />
-              <CameraIcon className="h-10 w-10 my-auto mx-2 text-gray-800 cursor-pointer" 
-              onClick={() => setShowCameraModal(true)} />
+              
+  type="text"
+placeholder={query || (inputFocused ? '' : `${dynamicPlaceholder} |`)}
+  value={query}
+onFocus={() => {
+  setInputFocused(true);
+  setDynamicPlaceholder('');
+  setResetPlaceholder(true); // ✨ trigger reset
+}}
+
+  onBlur={() => setInputFocused(false)}
+  onChange={(e) => {
+    setQuery(e.target.value);
+    setShowSuggestions(true);
+  }}
+  className="w-full py-4 pl-12 h-14 text=md border-none rounded-full shadow-sm focus:outline-none text-black-800 text-base"
+/>
+<AnimatedPlaceholder
+  isActive={!inputFocused && query === ''}
+  onChange={setDynamicPlaceholder}
+  resetSignal={resetPlaceholder}
+/>
+
+
+              
+ <div className="relative group ml-2 flex items-center">
+  <CameraIcon
+    className="h-10 w-10 text-gray-800 cursor-pointer"
+    onClick={() => setShowCameraModal(true)}
+  />
+  <span className="absolute top-full mt-1 left-1/2 -translate-x-1/2 scale-0 group-hover:scale-100 transition-all duration-200 bg-gray-800 text-white text-xs rounded-md px-2 py-1 whitespace-nowrap z-20">
+    Search with image
+  </span>
+</div>
+
               <button
                 type="button"
                 onClick={handleSearch}
-                className="relative right-2 top-2 bg-blue-800 hover:bg-blue-700 hover:cursor-pointer text-white rounded-full text-sm h-8 w-24 ml-3"
+                className="relative right-3 top-2 bg-blue-800 hover:bg-blue-700 hover:cursor-pointer text-white rounded-full text-md h-10 w-26 ml-4"
               >
                 Search
               </button>
