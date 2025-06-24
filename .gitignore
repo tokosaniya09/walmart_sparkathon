@@ -2,6 +2,7 @@
 node_modules
 /.pnp
 .pnp.js
+backend/venv/
 
 # next.js build output
 .next
