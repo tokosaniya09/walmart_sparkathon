@@ -17,7 +17,7 @@ collection_name = "products"
 if not client.collection_exists(collection_name=collection_name):
     client.recreate_collection(
         collection_name=collection_name,
-        vectors_config=VectorParams(size=512, distance=Distance.COSINE)
+        vectors_config=VectorParams(size=1024, distance=Distance.COSINE)
     )
     print(f"✅ Created Qdrant collection: {collection_name}")
 else:

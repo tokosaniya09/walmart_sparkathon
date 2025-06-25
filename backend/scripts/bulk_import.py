@@ -1,30 +1,75 @@
+# Updated script based on the user's requirements:
+# - Limit product inserts to 50 per category
+# - Improve embedding quality using stronger input
+# - Skip irrelevant products
+# - All integrated into the flow
+
 import os
+import time
 import requests
+from uuid import uuid4
 from dotenv import load_dotenv
 from tqdm import tqdm
 from sqlmodel import Session
-from app.db import engine
-from app.models import Product
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import PointStruct
 from sentence_transformers import SentenceTransformer
-import uuid
+
+from app.db import engine
+from app.models import Product
 from app.utils.product_classify import classify_product_fields
 
 load_dotenv()
 
-API_KEY = os.getenv("BLUECART_API_KEY") 
-QDRANT_URL = os.getenv("QDRANT_URL") 
-QDRANT_API_KEY = os.getenv("QDRANT_API_KEY") 
+API_KEY = os.getenv("BLUECART_API_KEY")
+QDRANT_URL = os.getenv("QDRANT_URL")
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY")
 COLLECTION_NAME = "products"
+TRACK_FILE = "processed_categories.txt"
 
 client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
-model = SentenceTransformer("clip-ViT-B-32")
+model = SentenceTransformer("BAAI/bge-large-en-v1.5")  # Better semantic model
 
+# Only testing on a small sample of categories for now
 CATEGORIES = [
-    "shampoo", "dress", "shirt", "laptop", "earrings", "sofa", "curtains", "phone",
-    "jacket", "toys", "makeup", "mirror", "bed", "table", "camera", "headphones",
-    "watch", "wallet", "backpack", "sneakers"
+    "laptop", "smartphone", "tablet", "smartwatch", "desktop", "charger", "headphones", "earbuds", "power bank", "USB cable",
+    "monitor", "HDMI cable", "webcam", "router", "keyboard", "mouse", "stylus", "printer", "scanner",
+    "speaker", "bluetooth speaker", "wireless mouse", "gaming headset", "hard drive", "SSD", "graphics card", "CPU", "RAM",
+    "motherboard", "TV", "projector", "smart TV", "streaming stick", "VR headset",
+    "t-shirt", "jeans", "hoodie", "sweatshirt", "jacket", "coat", "dress", "leggings", "skirt", "socks",
+    "underwear", "bra", "swimsuit", "blazer", "trousers", "formal shirt", "shorts", "tank top", "tie",
+    "belt", "scarf", "hat", "beanie", "gloves", "boots", "sneakers", "sandals", "loafers", "heels", "flip flops",
+    "diapers", "baby wipes", "baby formula", "baby lotion", "baby shampoo", "stroller", "car seat",
+    "baby bottle", "pacifier", "baby food", "bib", "onesie", "baby blanket", "crib", "toddler shoes",
+    "toys", "teething ring", "rattle", "baby monitor", "baby swing", "diaper bag", "potty seat",
+    "shampoo", "conditioner", "face wash", "face cream", "sunscreen", "moisturizer", "deodorant", "toothpaste",
+    "toothbrush", "mouthwash", "razor", "shaving cream", "perfume", "body wash", "lip balm", "mascara",
+    "eyeliner", "nail polish", "foundation", "face mask", "makeup remover", "makeup brush", "hair brush",
+    "sofa", "couch", "bed frame", "mattress", "nightstand", "coffee table", "chair", "ottoman", "TV stand",
+    "bookshelf", "lamp", "rug", "curtain", "pillow", "blanket", "duvet", "sheet set", "mirror", "clock",
+    "laundry basket", "storage bin", "trash can", "ironing board", "shelf liner", "wall decor",
+    "knife set", "frying pan", "saucepan", "non-stick pan", "spatula", "blender", "juicer", "toaster", "coffee maker",
+    "microwave", "kettle", "rice cooker", "pressure cooker", "slow cooker", "baking tray", "measuring cup",
+    "mixing bowl", "cutting board", "dish rack", "water bottle", "thermos", "lunch box", "coffee mug",
+    "dish soap", "laundry detergent", "fabric softener", "disinfectant spray", "glass cleaner", "mop",
+    "broom", "vacuum cleaner", "floor cleaner", "toilet cleaner", "air freshener", "sponge", "duster",
+    "trash bags", "paper towels", "toilet paper", "scrub brush", "gloves", "lint roller", "plunger",
+    "milk", "bread", "eggs", "cheese", "yogurt", "cereal", "oats", "flour", "sugar", "salt", "pasta",
+    "noodles", "rice", "lentils", "beans", "ketchup", "mayonnaise", "peanut butter", "jam", "cookies",
+    "chips", "crackers", "frozen pizza", "frozen vegetables", "soda", "juice", "tea", "coffee",
+    "vitamin C", "multivitamin", "protein powder", "omega 3", "hand sanitizer", "thermometer",
+    "first aid kit", "bandaid", "pain reliever", "cough syrup", "allergy medicine", "glucose monitor",
+    "heating pad", "blood pressure monitor", "weight scale", "face mask", "eye drops", "inhaler",
+    "screwdriver", "drill", "hammer", "wrench", "pliers", "saw", "nails", "screws", "tape measure",
+    "toolbox", "flashlight", "ladder", "extension cord", "duct tape", "sandpaper", "level", "paint roller",
+    "car tire", "motor oil", "car battery", "air freshener car", "windshield wiper", "car charger",
+    "car cover", "jumper cables", "car vacuum", "seat cover", "steering wheel cover", "tire inflator",
+    "dog food", "cat food", "pet bed", "pet bowl", "leash", "collar", "pet shampoo", "litter box",
+    "dog toy", "cat toy", "scratching post", "pet carrier", "grooming brush", "dog treats",
+    "video game", "gaming laptop", "gaming mouse", "controller", "PS5", "Xbox Series X", "Nintendo Switch",
+    "gaming chair", "gamepad", "gaming monitor", "joystick", "gaming keyboard", "VR controller",
+    "notebook", "pen", "pencil", "stapler", "eraser", "highlighter", "printer paper", "sticky notes",
+    "file folder", "binder", "tape", "glue", "scissors", "desk organizer", "whiteboard", "marker", "tent", "sleeping bag", "flashlight", "cooler", "backpack", "hiking boots", "fishing rod", "yoga mat", "dumbbells", "jump rope", "treadmill", "bike", "helmet", "sports shoes", "christmas tree", "holiday lights", "halloween costume", "pumpkin decor", "gift wrap", "greeting card", "balloon set", "party hats", "cake topper", "candles", "easter eggs", "new year confetti","batteries", "light bulb", "sewing kit", "fan", "dehumidifier", "alarm clock", "key holder", "phone stand"
 ]
 
 def fetch_products(category: str):
@@ -38,8 +83,8 @@ def fetch_products(category: str):
         resp = requests.get(url, params=params)
         data = resp.json()
         return data.get("search_results", [])
-    except Exception:
-        print(f"❌ Error fetching for {category}")
+    except Exception as e:
+        print(f"❌ Error fetching for {category}: {e}")
         return []
 
 def process_product(item, category):
@@ -53,13 +98,15 @@ def process_product(item, category):
     price = float(o.get("price", 0))
     image_url = p.get("main_image") or p.get("link", "")
 
-    # 🔍 Auto-classify
     try:
         enriched = classify_product_fields(title, description)
     except Exception as e:
         print(f"❌ Classification failed for '{title}': {e}")
         enriched = {}
 
+    # Filter irrelevant products
+    if enriched.get("item_type") and category.lower() not in enriched["item_type"].lower():
+        return None, None
 
     product = Product(
         title=title,
@@ -73,38 +120,60 @@ def process_product(item, category):
         material=enriched.get("material")
     )
 
-    embed_input = f"{title}. {description}. "
+    # Strong embedding input
+    embed_input = f"This is a {category}. Title: {title}. Type: {enriched.get('item_type', '')}. Description: {description}. Category: {category}."
     vector = model.encode(embed_input).tolist()
 
     return product, vector
 
+def load_processed():
+    if os.path.exists(TRACK_FILE):
+        with open(TRACK_FILE, "r") as f:
+            return set(line.strip() for line in f.readlines())
+    return set()
+
+def save_processed(category):
+    with open(TRACK_FILE, "a") as f:
+        f.write(category + "\n")
+
 def main():
-    all_products = []
+    processed = load_processed()
+    pending = [cat for cat in CATEGORIES if cat not in processed]
+
+    print(f"📦 Remaining categories: {len(pending)}")
 
     with Session(engine) as session:
-        for category in CATEGORIES:
+        for category in pending:
             print(f"\n🔍 Fetching category: {category}")
             results = fetch_products(category)
 
+            inserted = 0
             for item in tqdm(results, desc=f"Inserting {category}", ncols=90):
+                if inserted >= 50:
+                    break
                 product, vector = process_product(item, category)
                 if product and vector:
                     session.add(product)
-                    session.flush()  # get auto-generated ID
-
+                    session.flush()
                     point = PointStruct(
-                        id=str(uuid.uuid4()),
+                        id=str(uuid4()),
                         vector=vector,
                         payload={
+                            "product_id": product.id,
                             "title": product.title,
                             "category": product.category,
-                            "description": product.description,
-                            "product_id": product.id
+                            "description": product.description
                         }
                     )
                     client.upsert(collection_name=COLLECTION_NAME, points=[point])
-        session.commit()
-        print("✅ All data saved to PostgreSQL and Qdrant.")
+                    inserted += 1
+
+            session.commit()
+            save_processed(category)
+            print(f"✅ Inserted {inserted} products for {category}")
+            time.sleep(1)
+
+    print("🏁 All categories completed.")
 
 if __name__ == "__main__":
     main()

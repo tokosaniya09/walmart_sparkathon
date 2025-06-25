@@ -16,13 +16,15 @@ async def search_products(
     image: UploadFile = File(None),
     db: Session = Depends(get_db)
 ):
-    print("✅ Received search request")
-    print("📝 Text query:", text)
-    if image:
-        print("🖼️ Image received:", image.filename)
-    else:
-        print("🖼️ No image provided")
+    # print("✅ Received search request")
+    # print("📝 Text query:", text)
+    # if image:
+    #     print("🖼️ Image received:", image.filename)
+    # else:
+    #     print("🖼️ No image provided")
+
     text_embedding = generate_text_embedding(text)
+    print("🔍 Text Embedding:", text_embedding[:5], "...")
 
     if image:
         image_bytes = await image.read()
@@ -32,6 +34,7 @@ async def search_products(
         final_embedding = text_embedding
 
     matched_ids = search_qdrant(final_embedding)
+    print("🧠 Qdrant Matched IDs:", matched_ids)
 
     products = db.query(Product).filter(Product.id.in_(matched_ids)).all()
 
@@ -70,7 +73,7 @@ def search_suggestions(
             """),
             {"q": f"{q.lower()}%"}
         )
-        suggestions = [row[0] for row in result]
+        suggestions = [row[1] for row in result]
         return {"suggestions": suggestions}
     except Exception as e:
         print("❌ Error in search_suggestions:", str(e))
