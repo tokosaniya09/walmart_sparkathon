@@ -12,3 +12,4 @@ class Product(SQLModel, table=True):
     item_type: Optional[str] = None     # <-- new
     color: Optional[str] = None         # <-- new
     material: Optional[str] = None  
+    rating: Optional[float] = None  # <-- new

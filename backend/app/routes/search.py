@@ -45,7 +45,7 @@ async def search_products(
             "image_url": p.image_url,
             "product_url": "",
             "price": p.price,
-            "rating": 4.5,
+            "rating": p.rating,
         }
         for p in products
     ]

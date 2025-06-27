@@ -1,9 +1,3 @@
-# Updated script based on the user's requirements:
-# - Limit product inserts to 50 per category
-# - Improve embedding quality using stronger input
-# - Skip irrelevant products
-# - All integrated into the flow
-
 import os
 import time
 import requests
@@ -17,7 +11,6 @@ from sentence_transformers import SentenceTransformer
 
 from app.db import engine
 from app.models import Product
-from app.utils.product_classify import classify_product_fields
 
 load_dotenv()
 
@@ -28,17 +21,10 @@ COLLECTION_NAME = "products"
 TRACK_FILE = "processed_categories.txt"
 
 client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
-model = SentenceTransformer("BAAI/bge-large-en-v1.5")  # Better semantic model
+model = SentenceTransformer("BAAI/bge-large-en-v1.5")
 
-# Only testing on a small sample of categories for now
 CATEGORIES = [
-    "laptop", "smartphone", "tablet", "smartwatch", "desktop", "charger", "headphones", "earbuds", "power bank", "USB cable",
-    "monitor", "HDMI cable", "webcam", "router", "keyboard", "mouse", "stylus", "printer", "scanner",
-    "speaker", "bluetooth speaker", "wireless mouse", "gaming headset", "hard drive", "SSD", "graphics card", "CPU", "RAM",
-    "motherboard", "TV", "projector", "smart TV", "streaming stick", "VR headset",
-    "t-shirt", "jeans", "hoodie", "sweatshirt", "jacket", "coat", "dress", "leggings", "skirt", "socks",
-    "underwear", "bra", "swimsuit", "blazer", "trousers", "formal shirt", "shorts", "tank top", "tie",
-    "belt", "scarf", "hat", "beanie", "gloves", "boots", "sneakers", "sandals", "loafers", "heels", "flip flops",
+    "scarf", "hat", "beanie", "gloves", "boots", "sneakers", "sandals", "loafers", "heels", "flip flops",
     "diapers", "baby wipes", "baby formula", "baby lotion", "baby shampoo", "stroller", "car seat",
     "baby bottle", "pacifier", "baby food", "bib", "onesie", "baby blanket", "crib", "toddler shoes",
     "toys", "teething ring", "rattle", "baby monitor", "baby swing", "diaper bag", "potty seat",
@@ -46,7 +32,7 @@ CATEGORIES = [
     "toothbrush", "mouthwash", "razor", "shaving cream", "perfume", "body wash", "lip balm", "mascara",
     "eyeliner", "nail polish", "foundation", "face mask", "makeup remover", "makeup brush", "hair brush",
     "sofa", "couch", "bed frame", "mattress", "nightstand", "coffee table", "chair", "ottoman", "TV stand",
-    "bookshelf", "lamp", "rug", "curtain", "pillow", "blanket", "duvet", "sheet set", "mirror", "clock",
+    "bookshelf", "lamp", "rug", "pillow", "blanket", "duvet", "sheet set", "mirror", "clock",
     "laundry basket", "storage bin", "trash can", "ironing board", "shelf liner", "wall decor",
     "knife set", "frying pan", "saucepan", "non-stick pan", "spatula", "blender", "juicer", "toaster", "coffee maker",
     "microwave", "kettle", "rice cooker", "pressure cooker", "slow cooker", "baking tray", "measuring cup",
@@ -70,7 +56,8 @@ CATEGORIES = [
     "gaming chair", "gamepad", "gaming monitor", "joystick", "gaming keyboard", "VR controller",
     "notebook", "pen", "pencil", "stapler", "eraser", "highlighter", "printer paper", "sticky notes",
     "file folder", "binder", "tape", "glue", "scissors", "desk organizer", "whiteboard", "marker", "tent", "sleeping bag", "flashlight", "cooler", "backpack", "hiking boots", "fishing rod", "yoga mat", "dumbbells", "jump rope", "treadmill", "bike", "helmet", "sports shoes", "christmas tree", "holiday lights", "halloween costume", "pumpkin decor", "gift wrap", "greeting card", "balloon set", "party hats", "cake topper", "candles", "easter eggs", "new year confetti","batteries", "light bulb", "sewing kit", "fan", "dehumidifier", "alarm clock", "key holder", "phone stand"
-]
+] 
+
 
 def fetch_products(category: str):
     url = "https://api.bluecartapi.com/request"
@@ -80,32 +67,25 @@ def fetch_products(category: str):
         "search_term": category
     }
     try:
-        resp = requests.get(url, params=params)
-        data = resp.json()
-        return data.get("search_results", [])
+        response = requests.get(url, params=params)
+        return response.json().get("search_results", [])
     except Exception as e:
-        print(f"❌ Error fetching for {category}: {e}")
+        print(f"❌ Error fetching category '{category}': {e}")
         return []
 
-def process_product(item, category):
+
+def process_product(item, category: str):
     p = item.get("product", {})
     o = item.get("offers", {}).get("primary", {})
     if not p or not o:
         return None, None
 
-    title = p.get("title", "No Title")
+    title = p.get("title")
     description = f"Rating: {p.get('rating', 'N/A')} stars ({p.get('ratings_total', 0)} reviews)"
     price = float(o.get("price", 0))
-    image_url = p.get("main_image") or p.get("link", "")
+    image_url = p.get("main_image") or (p.get("images") or [None])[0]
 
-    try:
-        enriched = classify_product_fields(title, description)
-    except Exception as e:
-        print(f"❌ Classification failed for '{title}': {e}")
-        enriched = {}
-
-    # Filter irrelevant products
-    if enriched.get("item_type") and category.lower() not in enriched["item_type"].lower():
+    if not title or not image_url:
         return None, None
 
     product = Product(
@@ -114,17 +94,21 @@ def process_product(item, category):
         price=price,
         image_url=image_url,
         category=category.title(),
-        sub_category=enriched.get("sub_category"),
-        item_type=enriched.get("item_type"),
-        color=enriched.get("color"),
-        material=enriched.get("material")
+        sub_category=None,
+        item_type=None,
+        color=None,
+        material=None,
+        rating=p.get("rating")
     )
 
-    # Strong embedding input
-    embed_input = f"This is a {category}. Title: {title}. Type: {enriched.get('item_type', '')}. Description: {description}. Category: {category}."
+    # Embedding input tuned for semantic search
+    embed_input = (
+        f"Category: {category}. Title: {title}. Description: {description}."
+    )
     vector = model.encode(embed_input).tolist()
 
     return product, vector
+
 
 def load_processed():
     if os.path.exists(TRACK_FILE):
@@ -132,14 +116,16 @@ def load_processed():
             return set(line.strip() for line in f.readlines())
     return set()
 
+
 def save_processed(category):
     with open(TRACK_FILE, "a") as f:
         f.write(category + "\n")
 
+
 def main():
     processed = load_processed()
+    print(f"📂 Processed categories: {(processed)}")
     pending = [cat for cat in CATEGORIES if cat not in processed]
-
     print(f"📦 Remaining categories: {len(pending)}")
 
     with Session(engine) as session:
@@ -148,32 +134,47 @@ def main():
             results = fetch_products(category)
 
             inserted = 0
-            for item in tqdm(results, desc=f"Inserting {category}", ncols=90):
-                if inserted >= 50:
+            for item in tqdm(results, desc=f"Inserting {category}", ncols=100):
+                if inserted >= 25:
                     break
+
                 product, vector = process_product(item, category)
+
                 if product and vector:
-                    session.add(product)
-                    session.flush()
-                    point = PointStruct(
-                        id=str(uuid4()),
-                        vector=vector,
-                        payload={
-                            "product_id": product.id,
-                            "title": product.title,
-                            "category": product.category,
-                            "description": product.description
-                        }
-                    )
-                    client.upsert(collection_name=COLLECTION_NAME, points=[point])
+                    try:
+                        session.add(product)
+                        session.commit()
+                    except Exception as e:
+                        print(f"❌ DB commit failed: {e}")
+                        session.rollback()
+                        continue
+
+                    try:
+                        point = PointStruct(
+                            id=str(uuid4()),
+                            vector=vector,
+                            payload={
+                                "product_id": product.id,
+                                "title": product.title,
+                                "category": product.category,
+                                "description": product.description,
+                                "rating": product.rating,
+                                "image_url": product.image_url,
+                            }
+                        )
+                        client.upsert(collection_name=COLLECTION_NAME, points=[point])
+                    except Exception as e:
+                        print(f"❌ Qdrant insert failed: {e}")
+                        continue
+
                     inserted += 1
 
-            session.commit()
             save_processed(category)
             print(f"✅ Inserted {inserted} products for {category}")
             time.sleep(1)
 
     print("🏁 All categories completed.")
+
 
 if __name__ == "__main__":
     main()
