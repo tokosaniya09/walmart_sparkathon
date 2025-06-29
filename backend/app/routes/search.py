@@ -73,7 +73,7 @@ def search_suggestions(
             """),
             {"q": f"{q.lower()}%"}
         )
-        suggestions = [row[1] for row in result]
+        suggestions = [row[0] for row in result]
         return {"suggestions": suggestions}
     except Exception as e:
         print("❌ Error in search_suggestions:", str(e))
