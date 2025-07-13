@@ -7,6 +7,7 @@ from app.db import get_session as get_db
 from app.models import Product
 from app.utils.embed import generate_text_embedding, generate_image_embedding
 from app.qdrant_client import search_qdrant
+from sentence_transformers import SentenceTransformer
 
 router = APIRouter()
 

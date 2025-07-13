@@ -25,4 +25,9 @@ def generate_image_embedding(image_bytes: bytes):
         image_features = clip_model.get_image_features(**inputs)
         image_features = image_features / image_features.norm(p=2, dim=-1, keepdim=True)
 
-    return image_features[0].detach().cpu().numpy().tolist()
+    vec = image_features[0].detach().cpu().numpy().tolist()
+
+    # Pad to 1024 dimensions to match BGE
+    padded = vec + [0.0] * (1024 - len(vec))
+    return padded
+
