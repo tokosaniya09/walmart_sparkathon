@@ -40,7 +40,7 @@ const sampleProducts: ProductItem[] = [
   {
     name: 'Elegant Summer Dress',
     description: 'Floral print, lightweight, perfect for outings.',
-    image_url: 'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=80',
+    image_url: 'https://www.thebraggingmommy.com/wp-content/uploads/2022/03/floral-dress-flowers-field-nature-outdoor-beauty-model.png',
     product_url: '#',
     price: '$49.99',
     rating: 4.6,
@@ -108,7 +108,7 @@ const sampleProducts: ProductItem[] = [
   {
     name: 'Acoustic Guitar',
     description: 'Beginner-friendly 6-string acoustic guitar.',
-    image_url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80',
+    image_url: 'https://guitaristnextdoor.com/wp-content/uploads/2023/03/Acoustic-Guitar-Body-Types-Styles.png',
     product_url: '#',
     price: '$119.99',
     rating: 4.6,
@@ -116,7 +116,7 @@ const sampleProducts: ProductItem[] = [
   {
     name: 'Digital Piano Keyboard',
     description: '61-key portable electronic piano for learners.',
-    image_url: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?w=400&q=80',
+    image_url: 'https://th.bing.com/th/id/OIP.WBYxjfglTl_e_CpTLsWXiQHaEo?w=289&h=180&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3',
     product_url: '#',
     price: '$179.99',
     rating: 4.9,
@@ -125,7 +125,7 @@ const sampleProducts: ProductItem[] = [
   {
     name: 'Scented Candle Set',
     description: '3-pack of aromatic candles for home ambiance.',
-    image_url: 'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400&q=80',
+    image_url: 'https://th.bing.com/th/id/OIP.QQC-8MdoaGqNXexjJrYEjQHaHa?w=201&h=201&c=7&r=0&o=7&dpr=1.3&pid=1.7&rm=3',
     product_url: '#',
     price: '$14.99',
     rating: 4.3,
@@ -133,7 +133,7 @@ const sampleProducts: ProductItem[] = [
   {
     name: 'Stainless Steel Water Bottle',
     description: 'Keeps beverages hot/cold for 24 hours.',
-    image_url: 'https://images.unsplash.com/photo-1465101178521-c1a9136a3e16?w=400&q=80',
+    image_url: 'https://i5.walmartimages.com/asr/86c45a51-1bac-4d40-9c81-f91486fe310f_3.4272083f57985ca636acf93138bdeba1.jpeg',
     product_url: '#',
     price: '$12.99',
     rating: 4.7,
