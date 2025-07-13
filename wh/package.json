@@ -1,0 +1,25 @@
+{
+  "name": "weaviate-image-search",
+  "version": "1.0.0",
+  "description": "Image-based product search using Weaviate and img2vec-neural",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "search": "node search.js",
+    "download-images": "node download_images.js"
+  },
+  "author": "Toshyn",
+  "license": "ISC",
+  "keywords": [
+    "weaviate",
+    "image-search",
+    "semantic-search",
+    "vector-database"
+  ],
+  "dependencies": {
+    "axios": "^1.10.0",
+    "pg": "^8.16.3",
+    "weaviate-ts-client": "^2.2.0"
+  }
+}
